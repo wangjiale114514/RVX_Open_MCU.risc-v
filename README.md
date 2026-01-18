@@ -1,5 +1,6 @@
-# English
+
 # RVX_Open_MCU.risc-v
+## English
 this is an open-source MCU project. We aim to develop a microcontroller unit from scratch,  Its instruction set is RISC-V
 
 ## Here’s our idea for a custom MCU design
@@ -27,8 +28,7 @@ Execute / Push result to bus
 
 The bus is kept lean—either commands are packed tight or sent in timeslots to save pins/wires.
 
-# Chinese
-# RVX_Open_MCU.risc-v
+## 中文
 这是一个开源的微控制器项目。我们的目标是从零开发一个微控制器单元，它的指令集是RISC-V
 
 ## 这是我们针对定制 MCU 设计的想法!
