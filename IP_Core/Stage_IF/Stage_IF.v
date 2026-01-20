@@ -1,11 +1,11 @@
 //可能要加转接头
 
-module if (
+module Stage_IF (
     input wire clk,
     input wire reset,
 
     input wire kill,              //清空流水线
-    input wire [31:0] jump_pc;    //回溯地址
+    input wire [31:0] jump_pc,    //回溯地址
 
     input wire [31:0] inst,       //命令
     output reg [31:0] adderss,    //寻址
@@ -13,7 +13,7 @@ module if (
     input wire bp_in,             //bp输入(1跳转，0不跳转)
     output wire [31:0] bp_adderss,//传入bp地址
 
-    output wire [64:0] to_id_inst,//高一位分支预测结果，中32位命令adderss，低32位命令源码
+    output wire [64:0] to_id_inst//高一位分支预测结果，中32位命令adderss，低32位命令源码
 
 );
 
