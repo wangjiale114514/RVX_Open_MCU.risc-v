@@ -3,60 +3,90 @@
 module Stage_EX (
     input wire clk,
     input wire rst,
+    //
+    input wire [4:0] memOp_in,
+    input wire [5:0] wdOp_in,
+    //
 
+    input wire [7:0] exOp_in,
     input wire [(`BUS_W-1):0] rs1Data_in,
     input wire [(`BUS_W-1):0] rs2Data_in,
     input wire [(`BUS_W-1):0] imm_in,
     input wire [(`BUS_W-1):0] pc_in,
 
-    input wire [7:0] exOp_in,
-    input wire [4:0] memOp_in,
-    input wire [5:0] wdOp_in,
-
-    output reg [(`BUS_W-1):0] rs2Data_out,
-    output reg [(`BUS_W-1):0] exResult_out,
+    //
     output reg [4:0] memOp_out,
-    output reg [5:0] wdOp_out
-);
+    output reg [5:0] wdOp_out,
+    output reg [(`BUS_W-1):0] rs2Data_out,
+    //
 
+    output reg [(`BUS_W-1):0] exResult_out,
+    output wire jumpEn_out,
+    output wire [(`BUS_W-1):0] jumpAddr_out
+);
+// EXDECODE
 wire workEn;
 wire cptSelect;
-wire srcASelect;
-wire srcBSelect;
-wire [3:0] aluOp;
+wire aluSrcASelect;
+wire aluSrcBSelect;
+wire [3:0] cptOp;
 assign workEn = exOp_in[0];
 assign cptSelect = exOp_in[1];
-assign srcASelect = exOp_in[2];
-assign srcBSelect = exOp_in[3];
-assign aluOp = exOp_in[7:4];
+assign aluSrcASelect = exOp_in[2];
+assign aluSrcBSelect = exOp_in[3];
+assign cptOp = exOp_in[7:4];
 
-wire [(`BUS_W-1):0] srcA;
-wire [(`BUS_W-1):0] srcB;
-assign srcA = srcASelect ? pc_in : rs1Data_in;
-assign srcB = srcBSelect ? imm_in : rs2Data_in;
-
+// ALU
+wire [(`BUS_W-1):0] aluSrcA;
+wire [(`BUS_W-1):0] aluSrcB;
+assign aluSrcA = aluSrcASelect ? pc_in : rs1Data_in;
+assign aluSrcB = aluSrcBSelect ? imm_in : rs2Data_in;
 wire [(`BUS_W-1):0] aluResult;
 RV_ALU alu_mod(
-    .aluOp(aluOp),
-    .srcA(srcA),
-    .srcB(srcB),
-    .aluOut(aluResult)
+    .aluOp(cptOp),
+    .srcA(aluSrcA),
+    .srcB(aluSrcB),
+    .aluResult(aluResult)
 );
 
-wire [(`BUS_W-1):0] exResult;
-assign exResult = workEn ? (cptSelect ? imm_in : aluResult) : {(`BUS_W){1'b0}};
+// BRANCH
+wire [2:0] branchOp;
+assign branchOp = cptOp[2:0];
+wire branchTaken;
+RV_Branch branch_mod(
+    .branchOp(branchOp),
+    .srcA(rs1Data_in),
+    .srcB(rs2Data_in),
+    .branchTaken(branchTaken)
+);
 
+// RESULT
+wire [(`BUS_W-1):0] pcPlus;
+wire [(`BUS_W-1):0] pcAddImm;
+wire [(`BUS_W-1):0] rs1AddImm;
+assign pcPlus = pc_in + 4;
+assign pcAddImm = pc_in + imm_in;
+assign rs1AddImm = rs1Data_in + imm_in;
+
+wire [(`BUS_W-1):0] exResult;
+assign exResult = (workEn ? (cptSelect ? pcPlus : aluResult) : imm_in);
+
+// ASYN
+assign jumpEn_out = (workEn & (cptSelect & (branchTaken | cptOp[3])));
+assign jumpAddr_out = cptOp[3] ? rs1AddImm : pcAddImm;
+
+// SYN
 always @(posedge clk or negedge rst) begin
-    if(!rst) begin
-        rs2Data_out <= {(`BUS_W){1'b0}};
-        exResult_out <= {(`BUS_W){1'b0}};
+    if(!rst)begin
         memOp_out <= 5'b00000;
         wdOp_out <= 6'b000000;
+        rs2Data_out <= {(`BUS_W){1'b0}};
+        exResult_out <= {(`BUS_W){1'b0}};
     end else begin
-        rs2Data_out <= rs2Data_in;
-        exResult_out <= exResult;
         memOp_out <= memOp_in;
         wdOp_out <= wdOp_in;
+        rs2Data_out <= rs2Data_in;
+        exResult_out <= exResult;
     end
 end
 

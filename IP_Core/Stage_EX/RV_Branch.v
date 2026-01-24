@@ -1,4 +1,4 @@
-`include "../../Units/RVX_Info.v"
+`include "../Units/RVX_Info.v"
 
 module RV_Branch (
     input wire [2:0] branchOp,

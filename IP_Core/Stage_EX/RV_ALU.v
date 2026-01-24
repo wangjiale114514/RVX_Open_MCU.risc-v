@@ -4,7 +4,7 @@ module RV_ALU (
     input wire [3:0] aluOp,
     input wire [(`BUS_W-1):0] srcA,
     input wire [(`BUS_W-1):0] srcB,
-    output reg [(`BUS_W-1):0] aluOut
+    output reg [(`BUS_W-1):0] aluResult
 );
 // funct7 , funct3
 parameter ADD = 4'b0000;
@@ -17,22 +17,20 @@ parameter SRL = 4'b0101;
 parameter SRA = 4'b1101;
 parameter SLT = 4'b0010;
 parameter SLTU= 4'b0011;
-parameter PCPLUS= 4'b1111;
 
 always @(*) begin
     case (aluOp)
-    ADD: aluOut = srcA + srcB;
-    SUB: aluOut = srcA - srcB;
-    XOR: aluOut = srcA ^ srcB;
-    OR : aluOut = srcA | srcB;
-    AND: aluOut = srcA & srcB;
-    SLL: aluOut = srcA << srcB[4:0];
-    SRL: aluOut = srcA >> srcB[4:0];
-    SRA: aluOut = $signed(srcA) >>> srcB[4:0];
-    SLT: aluOut = ($signed(srcA) < $signed(srcB));
-    SLTU:aluOut = (srcA < srcB);
-    PCPLUS: aluOut = srcA + 32'h0000_0004;
-    default: aluOut = {`BUS_W{1'b0}};
+    ADD: aluResult = srcA + srcB;
+    SUB: aluResult = srcA - srcB;
+    XOR: aluResult = srcA ^ srcB;
+    OR : aluResult = srcA | srcB;
+    AND: aluResult = srcA & srcB;
+    SLL: aluResult = srcA << srcB[4:0];
+    SRL: aluResult = srcA >> srcB[4:0];
+    SRA: aluResult = $signed(srcA) >>> srcB[4:0];
+    SLT: aluResult = ($signed(srcA) < $signed(srcB));
+    SLTU:aluResult = (srcA < srcB);
+    default: aluResult = {`BUS_W{1'b0}};
     endcase
 end
 
